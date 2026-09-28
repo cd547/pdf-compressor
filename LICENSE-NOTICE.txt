@@ -1,0 +1,27 @@
+PDF 压缩工具 - 许可证与第三方组件声明
+======================================
+
+本软件基于以下开源组件构建：
+
+1. Ghostscript (Artifex Software, Inc.)
+   - 协议：GNU Affero General Public License v3 (AGPL v3)
+   - 官网：https://www.ghostscript.com/
+   - 说明：本软件调用 Ghostscript 可执行文件 (gswin64c.exe) 完成 PDF 压缩、
+     合并、拆分、转图片、加密等所有核心功能。Ghostscript 启动时会输出
+     AGPL 协议提示，本软件不删除、不修改、不屏蔽该提示。
+   - 风险提示：商业分发需购买 Artifex 商业许可。详见：
+     https://www.ghostscript.com/commercial.html
+
+2. NeutralinoJS
+   - 协议：MIT
+   - 官网：https://neutralino.js.org/
+
+3. pdf-lib
+   - 协议：MIT
+   - 官网：https://pdf-lib.js.org/
+
+合规声明：
+- 本软件源码完全开源，符合 AGPL v3 要求。
+- 任何对本软件或 Ghostscript 的修改必须同样以 AGPL v3 开源。
+- 用户使用本软件即表示已知悉并接受 AGPL 协议风险。
+- 商业用途请购买 Ghostscript 商业许可。

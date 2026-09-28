@@ -1,0 +1,7 @@
+node_modules/
+build/
+bin/
+gs/
+*.part*.pdf
+*.log
+.trae/

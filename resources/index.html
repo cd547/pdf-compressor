@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF 压缩工具</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="js/neutralino.js"></script>
+  <script src="js/vendor/pdf-lib.min.js"></script>
+</head>
+<body data-theme="auto">
+  <header class="app-header">
+    <h1>PDF 工具箱</h1>
+    <span class="gs-status" id="gsStatus">检测 Ghostscript…</span>
+    <button class="theme-toggle" id="themeToggle" title="切换主题">主题</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="compress">压缩</button>
+    <button class="tab" data-tab="mergesplit">合并/拆分</button>
+    <button class="tab" data-tab="toimage">转图片</button>
+    <button class="tab" data-tab="img2pdf">图片转 PDF</button>
+    <button class="tab" data-tab="info">信息查看</button>
+    <button class="tab" data-tab="history">历史记录</button>
+  </nav>
+
+  <main>
+    <!-- 压缩 tab -->
+    <section id="tab-compress" class="panel active">
+      <div class="dropzone" id="dropzone">
+        <p>点击选择 PDF（支持多文件）</p>
+        <p class="hint">Neutralino webview 不支持拖拽返回磁盘路径，请点击使用系统对话框</p>
+      </div>
+      <ul class="file-list" id="fileList"></ul>
+
+      <div class="card">
+        <label class="block-label">预设</label>
+        <div class="preset-row">
+          <button data-preset="screen">极致</button>
+          <button data-preset="ebook" class="active">标准</button>
+          <button data-preset="printer">高质量</button>
+          <button data-preset="prepress">无损</button>
+        </div>
+      </div>
+
+      <details class="card advanced">
+        <summary>自定义参数</summary>
+        <div class="grid">
+          <label>DPI <span id="dpiVal">150</span>
+            <input type="range" id="dpi" min="72" max="300" value="150">
+          </label>
+          <label>JPEG 质量 <span id="jpegVal">80</span>
+            <input type="range" id="jpeg" min="10" max="100" value="80">
+          </label>
+          <label>颜色
+            <select id="color">
+              <option value="color">彩色</option>
+              <option value="gray">灰度</option>
+              <option value="mono">黑白</option>
+            </select>
+          </label>
+          <label>兼容版本
+            <select id="compat">
+              <option value="1.4">1.4</option>
+              <option value="1.5">1.5</option>
+              <option value="1.6">1.6</option>
+              <option value="1.7">1.7</option>
+            </select>
+          </label>
+          <label>页面范围 <input type="text" id="pages" placeholder="1-5 或 1-3,8,10-12"></label>
+          <label>降采样
+            <select id="downsample">
+              <option value="bicubic">双三次</option>
+              <option value="bilinear">双线性</option>
+              <option value="none">不降采样</option>
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" id="subsetFonts"> 子集化字体</label>
+          <label class="check"><input type="checkbox" id="noAnnot"> 移除注释</label>
+          <label class="check"><input type="checkbox" id="noMeta"> 移除元数据</label>
+          <label class="check"><input type="checkbox" id="noForm"> 移除表单</label>
+          <label class="check"><input type="checkbox" id="noAttach"> 移除附件</label>
+          <label class="check"><input type="checkbox" id="linearize"> 线性化（Web 优化）</label>
+          <label class="check"><input type="checkbox" id="encrypt"> 启用加密</label>
+          <label class="enc-row">打开密码 <input type="password" id="pwdOpen"></label>
+          <label class="enc-row">权限密码 <input type="password" id="pwdPerms"></label>
+          <label class="enc-row">权限
+            <select id="perms">
+              <option value="0">全部禁止</option>
+              <option value="4">允许打印</option>
+              <option value="2052">允许打印+复制</option>
+              <option value="4096">全部允许</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <div class="actions">
+        <button id="compressBtn" class="primary">开始压缩</button>
+        <progress id="progress" max="100" value="0"></progress>
+        <span id="progressText">0%</span>
+      </div>
+      <ul class="result-list" id="resultList"></ul>
+    </section>
+
+    <!-- 合并/拆分 tab -->
+    <section id="tab-mergesplit" class="panel">
+      <div class="card">
+        <h3>合并多个 PDF</h3>
+        <button id="mergeBtn" class="primary">选择多个 PDF 并合并</button>
+      </div>
+      <div class="card">
+        <h3>拆分单页 PDF</h3>
+        <button id="splitBtn" class="primary">选择 PDF 并拆分每页</button>
+      </div>
+      <progress id="msProgress" max="100" value="0"></progress>
+      <ul class="result-list" id="msResult"></ul>
+    </section>
+
+    <!-- 转图片 tab -->
+    <section id="tab-toimage" class="panel">
+      <div class="card">
+        <label>格式
+          <select id="imgFmt"><option value="png">PNG</option><option value="jpeg">JPEG</option></select>
+        </label>
+        <label>DPI <span id="imgDpiVal">150</span>
+          <input type="range" id="imgDpi" min="72" max="300" value="150">
+        </label>
+        <button id="toImgBtn" class="primary">选择 PDF 导出每页为图片</button>
+      </div>
+      <progress id="imgProgress" max="100" value="0"></progress>
+    </section>
+
+    <!-- 图片转 PDF tab -->
+    <section id="tab-img2pdf" class="panel">
+      <div class="card">
+        <p>选择多张图片（PNG/JPEG）合并为一个 PDF</p>
+        <button id="img2pdfBtn" class="primary">选择图片并合成 PDF</button>
+      </div>
+    </section>
+
+    <!-- 信息查看 tab -->
+    <section id="tab-info" class="panel">
+      <div class="card">
+        <button id="infoBtn" class="primary">选择 PDF 查看信息</button>
+      </div>
+      <pre id="infoOutput" class="info-out">点击上方按钮选择 PDF</pre>
+    </section>
+
+    <!-- 历史记录 tab -->
+    <section id="tab-history" class="panel">
+      <div class="card">
+        <button id="clearHistoryBtn">清空历史</button>
+        <span class="hint">仅保留最近 20 条，关闭软件后保留</span>
+      </div>
+      <table id="historyTable">
+        <thead><tr><th>时间</th><th>类型</th><th>输入</th><th>结果</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- 错误弹窗：半透明 + 高斯模糊 -->
+  <div class="modal" id="errorModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>执行失败</span>
+        <button id="modalClose" class="close" title="关闭">×</button>
+      </div>
+      <pre id="errorBody" class="err-body"></pre>
+      <div class="modal-actions">
+        <button id="copyErr">复制错误信息</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/gs-bridge.js"></script>
+  <script src="js/compress.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/info.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
